@@ -1,0 +1,164 @@
+openapi: 3.0.0
+info:
+  title: Evolution of Todo API
+  version: 1.0.0
+  description: REST API for Phase II Full-Stack Todo Application
+paths:
+  /api/tasks:
+    get:
+      summary: List all todos for the authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: A list of todos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Todo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      summary: Create a new todo
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoCreate'
+      responses:
+        '201':
+          description: Todo created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/tasks/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get details of a specific todo
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Todo not found
+    put:
+      summary: Update a specific todo
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoUpdate'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      summary: Delete a specific todo
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Todo deleted
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/tasks/{id}/toggle:
+    patch:
+      summary: Toggle completion status of a todo
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  schemas:
+    Todo:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        completed:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    TodoCreate:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 1000
+    TodoUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        completed:
+          type: boolean
+
+  responses:
+    BadRequest:
+      description: Invalid input
+    Unauthorized:
+      description: Missing or invalid authentication token
+    Forbidden:
+      description: Access denied (resource belongs to another user)
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
